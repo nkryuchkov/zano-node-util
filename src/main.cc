@@ -14,6 +14,7 @@
 #include "serialization/binary_utils.h"
 #include "crypto/wild_keccak.h"
 #include <nan.h>
+#include <stdio.h>
 
 #define THROW_ERROR_EXCEPTION(x) Nan::ThrowError(x)
 
@@ -145,26 +146,45 @@ void address_decode(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     args.GetReturnValue().Set(Buffer::Copy(isolate, x, len).ToLocalChecked());
 
 void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
+    printf("get_pow_hash start\n");
 
-    if (args.Length() < 2)
+    if (args.Length() < 2) {
+        printf("get_pow_hash bad len\n");
         return THROW_ERROR_EXCEPTION("You must provide two arguments.");
+    }
+    printf("get_pow_hash len ok\n");
 
     Local<Object> target = args[0]->ToObject();
+    printf("get_pow_hash arg0 ok\n");
     Local<Object> target_spad = args[1]->ToObject();
+    printf("get_pow_hash arg1 ok\n");
     uint32_t height = 1;
+    printf("get_pow_hash height set\n");
 
-    if(!Buffer::HasInstance(target))
+    if(!Buffer::HasInstance(target)) {
+        printf("get_pow_hash no instance target\n");
         return THROW_ERROR_EXCEPTION("Argument 1 should be a buffer object.");
+    }
+    printf("get_pow_hash instance target ok\n");
 
-    if(!Buffer::HasInstance(target_spad))
+    if(!Buffer::HasInstance(target_spad)) {
+        printf("get_pow_hash no instance target_spad\n");
         return THROW_ERROR_EXCEPTION("Argument 2 should be a buffer object.");
+    }
+    printf("get_pow_hash instance target_spad ok\n");
 
     if(args.Length() >= 3) {
-        if(args[2]->IsUint32())
+        printf("get_pow_hash args >= 3\n");
+        if(args[2]->IsUint32()) {
+            printf("get_pow_hash args[2] is uint32\n");
             height = args[2]->Uint32Value();
-        else
+        } else {
+            printf("get_pow_hash args[2] is not uint32\n");
             return THROW_ERROR_EXCEPTION("Argument 3 should be an unsigned integer.");
+        }
     }
+
+    printf("get_pow_hash args ok\n");
 
     char * input = Buffer::Data(target);
     char * scratchpad = Buffer::Data(target_spad);
@@ -178,7 +198,9 @@ void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
 
     std::string hashing_blob(input, input_len);
 
+    printf("get_pow_hash calculate get_wild_keccak2\n");
     crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len/8);
+    printf("get_pow_hash done calculating get_wild_keccak2\n");
 
     v8::Isolate* isolate = args.GetIsolate();
 
@@ -189,7 +211,7 @@ void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
 void get_id_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
 
     if (args.Length() < 1)
-        return THROW_ERROR_EXCEPTION("You must provide two arguments.");
+        return THROW_ERROR_EXCEPTION("You must provide one argument.");
 
     Local<Object> target = args[0]->ToObject();
 
