@@ -200,17 +200,17 @@ void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
     printf("get_pow_hash calculate get_wild_keccak2\n");
 
     printf("get_wild_keccak2 input: 0x");
-    for (int i = 0; i < 32; i++) {
-        printf("%02hhX", scratchpad[i]);
+    for (int i = 0; i < input_len; i++) {
+        printf("%02hhx", input[i]);
     }
     printf("\n");
     printf("get_wild_keccak2 scratchpad len: %d\n", spad_len);
     if (spad_len >= 4) {
-        printf("get_wild_keccak2 scratchpad: 0x%02hhX%02hhX...%02hhX%02hhX\n", scratchpad[0], scratchpad[1], scratchpad[spad_len - 2], scratchpad[spad_len - 1]);
+        printf("get_wild_keccak2 scratchpad: 0x%02hhx%02hhx...%02hhx%02hhx\n", scratchpad[0], scratchpad[1], scratchpad[spad_len - 2], scratchpad[spad_len - 1]);
     }else {
         printf("get_wild_keccak2 scratchpad: %s\n", scratchpad);
     }
-    crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len);
+    crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len / 8);
     printf("get_pow_hash done calculating get_wild_keccak2\n");
 
     v8::Isolate* isolate = args.GetIsolate();
@@ -260,6 +260,7 @@ NAN_METHOD(generate_scratchpad) {
     int height = info[1]->IntegerValue();
 
     uint64_t result_len = get_scratchpad_size_for_height(height);
+    printf("scratchpad len for height %d is %ld\n", height, result_len);
 
     char *output = (char *) malloc((size_t) result_len);
 
