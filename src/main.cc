@@ -199,7 +199,7 @@ void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
     std::string hashing_blob(input, input_len);
 
     printf("get_pow_hash calculate get_wild_keccak2\n");
-    crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len/8);
+    crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len);
     printf("get_pow_hash done calculating get_wild_keccak2\n");
 
     v8::Isolate* isolate = args.GetIsolate();
