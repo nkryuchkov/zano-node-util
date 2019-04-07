@@ -4,6 +4,7 @@
       "target_name": "cryptonote",
       "sources": [
         "src/main.cc",
+        "src/currency_core/basic_pow_helpers.cpp",
         "src/currency_core/currency_format_utils.cpp",
         "src/currency_core/currency_format_utils_blocks.cpp",
         "src/currency_core/currency_format_utils_transactions.cpp",
@@ -22,6 +23,7 @@
       "include_dirs": [
         "src",
         "src/contrib/epee/include",
+        "src/contrib/ethereum/libethash",
         "src/contrib/eos_portable_archive",
         "src/contrib",
         "<!(node -e \"require('nan')\")"

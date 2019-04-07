@@ -13,6 +13,7 @@
 #include "common/base58.h"
 #include "serialization/binary_utils.h"
 #include "crypto/wild_keccak.h"
+#include "currency_core/basic_pow_helpers.h"
 #include <nan.h>
 
 #define THROW_ERROR_EXCEPTION(x) Nan::ThrowError(x)
@@ -150,35 +151,29 @@ void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
         return THROW_ERROR_EXCEPTION("You must provide at least two arguments.");
 
     Local<Object> target = args[0]->ToObject();
-    Local<Object> target_spad = args[1]->ToObject();
     uint32_t height = 1;
 
     if(!Buffer::HasInstance(target))
         return THROW_ERROR_EXCEPTION("Argument 1 should be a buffer object.");
 
-    if(!Buffer::HasInstance(target_spad))
-        return THROW_ERROR_EXCEPTION("Argument 2 should be a buffer object.");
-
-    if(args.Length() >= 3) {
+    if(args.Length() >= 2) {
         if(args[2]->IsUint32())
-            height = args[2]->Uint32Value();
+            height = args[1]->Uint32Value();
         else
-            return THROW_ERROR_EXCEPTION("Argument 3 should be an unsigned integer.");
+            return THROW_ERROR_EXCEPTION("Argument 2 should be an unsigned integer.");
     }
 
     char * input = Buffer::Data(target);
-    char * scratchpad = Buffer::Data(target_spad);
-    
+
     crypto::hash h = AUTO_VAL_INIT(h);
     char* output = reinterpret_cast<char* >(&h);
 
 
-    uint32_t input_len = Buffer::Length(target);
-    uint64_t spad_len = Buffer::Length(target_spad);
+//    uint32_t input_len = Buffer::Length(target);
 
-    std::string hashing_blob(input, input_len);
+//    std::string hashing_blob(input, input_len);
 
-    crypto::get_wild_keccak2(hashing_blob, h, (const uint64_t*)&scratchpad[0], spad_len/8);
+    get_block_longhash(*(block *) &input, h);
 
     v8::Isolate* isolate = args.GetIsolate();
 
@@ -211,36 +206,6 @@ void get_id_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
     SET_BUFFER_RETURN(output, 32);
 }
 
-NAN_METHOD(generate_scratchpad) {
-    if (info.Length() != 2)
-        return THROW_ERROR_EXCEPTION("You must provide two arguments.");
-
-    Local<Object> seed = info[0]->ToObject();
-
-    if(!Buffer::HasInstance(seed))
-        return THROW_ERROR_EXCEPTION("Argument 1 should be a buffer object.");
-
-    char * s = Buffer::Data(seed);
-
-    if(!info[1]->IsInt32())
-        return THROW_ERROR_EXCEPTION("Argument 2 should be an int32");
-    int height = info[1]->IntegerValue();
-
-    uint64_t result_len = get_scratchpad_size_for_height(height);
-
-    char *output = (char *) malloc((size_t) result_len);
-
-    crypto::hash sh = *(crypto::hash*) s;
-    std::vector<crypto::hash> result;
-    crypto::generate_scratchpad(sh, result, result_len);
-
-    v8::Local<v8::Value> returnValue = Nan::CopyBuffer((char *) result.data(), result_len).ToLocalChecked();
-    info.GetReturnValue().Set(
-        returnValue
-    );
-
-    free(output);
-}
 
 NAN_MODULE_INIT(init) {
     Nan::Set(target, Nan::New("construct_block_blob").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(construct_block_blob)).ToLocalChecked());
@@ -248,7 +213,6 @@ NAN_MODULE_INIT(init) {
     Nan::Set(target, Nan::New("address_decode").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(address_decode)).ToLocalChecked());
     Nan::Set(target, Nan::New("get_pow_hash").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(get_pow_hash)).ToLocalChecked());
     Nan::Set(target, Nan::New("get_id_hash").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(get_id_hash)).ToLocalChecked());
-    Nan::Set(target, Nan::New("generate_scratchpad").ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(generate_scratchpad)).ToLocalChecked());
 }
 
 NODE_MODULE(cryptonote, init)
