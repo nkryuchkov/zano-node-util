@@ -21,7 +21,7 @@
         "src/contrib/ethereum/libethash/ethash.cpp",
         "src/contrib/ethereum/libethash/keccak.c",
         "src/contrib/ethereum/libethash/keccakf800.c",
-        "src/contrib/ethereum/libethash/keccakf800.c",
+        "src/contrib/ethereum/libethash/keccakf1600.c",
         "src/contrib/ethereum/libethash/progpow.cpp",
         "src/contrib/ethereum/libethash/managed.cpp",
         "src/contrib/ethereum/libethash/primes.c"
