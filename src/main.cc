@@ -14,6 +14,7 @@
 #include "serialization/binary_utils.h"
 #include "currency_core/basic_pow_helpers.h"
 #include <nan.h>
+#include <iostream>
 
 #define THROW_ERROR_EXCEPTION(x) Nan::ThrowError(x)
 
@@ -59,7 +60,7 @@ NAN_METHOD(convert_blob) {
         return THROW_ERROR_EXCEPTION("Failed to parse block");
 
     output = get_block_hashing_blob(b);
-    
+
     v8::Local<v8::Value> returnValue = Nan::CopyBuffer((char*)output.data(), output.size()).ToLocalChecked();
     info.GetReturnValue().Set(
         returnValue
@@ -86,7 +87,7 @@ void address_decode(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         info.GetReturnValue().Set(Nan::Undefined());
     }
     //    info.GetReturnValue().Set(Nan::Undefined());
-    
+
 
     account_public_address adr;
     if (!::serialization::parse_binary(data, adr) || !crypto::check_key(adr.m_spend_public_key) || !crypto::check_key(adr.m_view_public_key))
@@ -99,9 +100,9 @@ void address_decode(const Nan::FunctionCallbackInfo<v8::Value>& info) {
         {
             info.GetReturnValue().Set(Nan::Undefined());
         }
-        
+
         v8::Local<v8::Value> returnValue = Nan::CopyBuffer((char*)data.data(), data.size()).ToLocalChecked();
-        
+
         info.GetReturnValue().Set( returnValue);
 
     }
@@ -116,50 +117,71 @@ void address_decode(const Nan::FunctionCallbackInfo<v8::Value>& info) {
     args.GetReturnValue().Set(Buffer::Copy(isolate, x, len).ToLocalChecked());
 
 /*
-Arguments: 
+Arguments:
 1: block_header_hash - 32-byte buffer
 2: nonce             - 8-byte buffer
 2: height            - 8-byte buffer
 */
 void get_pow_hash(const Nan::FunctionCallbackInfo<v8::Value>& args) {
-
-    if (args.Length() < 3)
+    std::cout << "Calculating PoW hash" << std::endl;
+    if (args.Length() < 3) {
+        std::cout << "Args too short" << std::endl;
         return THROW_ERROR_EXCEPTION("You must provide 3 arguments.");
+    }
+    std::cout << "Args ok" << std::endl;
 
     Local<Object> block_header_hash = args[0]->ToObject();
+    std::cout << "Got block_header_hash" << std::endl;
     Local<Object> nonce = args[1]->ToObject();
+    std::cout << "Got nonce" << std::endl;
     Local<Object> height = args[2]->ToObject();
+    std::cout << "Got height" << std::endl;
 
-    if(!Buffer::HasInstance(block_header_hash))
+    if(!Buffer::HasInstance(block_header_hash)) {
         return THROW_ERROR_EXCEPTION("Argument 1 should be a buffer object.");
+    }
+    std::cout << "Found block_header_hash" << std::endl;
 
-    if(!Buffer::HasInstance(nonce))
+    if(!Buffer::HasInstance(nonce)) {
         return THROW_ERROR_EXCEPTION("Argument 2 should be a buffer object.");
+    }
+    std::cout << "Found nonce" << std::endl;
 
-    if (!Buffer::HasInstance(height))
-        return THROW_ERROR_EXCEPTION("Argument 3 should be a buffer object.");
-
+    if (!Buffer::HasInstance(height)) {
+      return THROW_ERROR_EXCEPTION("Argument 3 should be a buffer object.");
+  }
+    std::cout << "Found height" << std::endl;
 
     uint32_t block_header_hash_len = Buffer::Length(block_header_hash);
     uint64_t nonce_len = Buffer::Length(nonce);
     uint64_t height_len = Buffer::Length(height);
 
-    if(block_header_hash_len != 32)
+    if(block_header_hash_len != 32) {
+    std::cout << "Bad block_header_hash_len" << std::endl;
       return THROW_ERROR_EXCEPTION("Argument 1 should be a buffer object of 32 bytes long.");
+      }
 
-    if (nonce_len != 8)
+    if (nonce_len != 8) {
+    std::cout << "Bad nonce_len" << std::endl;
       return THROW_ERROR_EXCEPTION("Argument 2 should be a buffer object of 8 bytes long.");
+      }
 
-    if (height_len != 8)
+    if (height_len != 8) {
+    std::cout << "Bad height_len" << std::endl;
       return THROW_ERROR_EXCEPTION("Argument 3 should be a buffer object of 8 bytes long.");
+      }
 
+std::cout << "Lengths are ok" << std::endl;
 
     crypto::hash* block_header_hash_ptr = (crypto::hash*)Buffer::Data(block_header_hash);
     uint64_t* nonce_ptr = (uint64_t*)Buffer::Data(nonce);
     uint64_t* height_ptr = (uint64_t*)Buffer::Data(height);
-    
-    
-    crypto::hash h = currency::get_block_longhash(*height_ptr, *block_header_hash_ptr, *nonce_ptr);    
+
+    std::cout << "Built buffers";
+    std::cout << "Calculating block longhash";
+
+    crypto::hash h = currency::get_block_longhash(*height_ptr, *block_header_hash_ptr, *nonce_ptr);
+    std::cout << "Calculated block longhash";
     SET_BUFFER_RETURN((const char*)&h, 32);
 }
 
