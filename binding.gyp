@@ -23,7 +23,8 @@
         "src/contrib/ethereum/libethash/keccakf800.c",
         "src/contrib/ethereum/libethash/keccakf800.c",
         "src/contrib/ethereum/libethash/progpow.cpp",
-        "src/contrib/ethereum/libethash/managed.cpp"
+        "src/contrib/ethereum/libethash/managed.cpp",
+        "src/contrib/ethereum/libethash/primes.c"
       ],
       "include_dirs": [
         "src",
