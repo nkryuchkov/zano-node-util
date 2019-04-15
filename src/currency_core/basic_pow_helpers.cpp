@@ -47,11 +47,29 @@ namespace currency
     return result;
   }
   //--------------------------------------------------------------
+  #include <cstdio>
   crypto::hash get_block_longhash(uint64_t height, const crypto::hash& block_header_hash, uint64_t nonce)
   {
+    printf("!start get_block_longhash\n");
     int epoch = ethash_height_to_epoch(height);
+    printf("!epoch: %d\n", epoch);
+    printf("!block number: %d (%x)\n", height, height);
+    printf("!header: ");
+    for (int i = 0; i < 32; i++)     {
+    printf("%02hhx", (*(ethash::hash256*)&block_header_hash).bytes[i]);
+    }
+    printf("\n");
+
+    printf("!nonce: %ld (%lx)\n", nonce, nonce);
     const auto& context = progpow::get_global_epoch_context_full(static_cast<int>(epoch));
     auto res_eth = progpow::hash(context, height, *(ethash::hash256*)&block_header_hash, nonce);
+
+    printf("!final hash: ");
+    for (int i = 0; i < 32; i++)     {
+    printf("%02hhx", (*(ethash::hash256*)&res_eth.final_hash).bytes[i]);
+    }
+    printf("\n");
+
     crypto::hash result = currency::null_hash;
     memcpy(&result.data, &res_eth.final_hash, sizeof(res_eth.final_hash));
     return result;
